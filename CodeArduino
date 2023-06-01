@@ -1,1 +1,164 @@
+#define DEBUG   // If DEBUG, plot on the serial plotter the 3 accelerometer axis
 
+#include <FastLED.h> // http://librarymanager/All#FASTLED
+#include "kxtj3-1057.h" // http://librarymanager/All#kxtj3-1057
+
+
+#define HIGH_RESOLUTION
+
+#define KXTJ3_DEBUG Serial
+
+#include "kxtj3-1057.h"
+#include "Wire.h"
+
+float   sampleRate = 12.5; 
+uint8_t accelRange = 4; 
+
+KXTJ3 myIMU(0x0E); 
+
+
+#define DATA_PIN    4
+#define LED_TYPE    WS2811
+#define COLOR_ORDER GRB
+#define NUM_LEDS    21
+CRGB leds[NUM_LEDS];
+
+#define BRIGHTNESS          20
+#define FRAMES_PER_SECOND  120
+
+uint8_t gHue = 0;
+
+
+
+void setup()
+{
+
+  Serial.begin(115200);
+  delay(1000); 
+
+
+  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+
+
+
+
+  FastLED.setBrightness(BRIGHTNESS);
+
+  if( myIMU.begin(sampleRate, accelRange) != 0 )
+  {}
+  else
+  {
+
+  }
+
+ 
+  myIMU.intConf(123, 1, 10, HIGH);
+
+  uint8_t readData = 0;
+
+ 
+  myIMU.readRegister(&readData, KXTJ3_WHO_AM_I);
+
+
+
+
+  Serial.println("X_axis:,Y_axis:,Z_axis:");
+
+}
+
+
+void loop()
+{
+  myIMU.standby( false );
+  int16_t dataHighres = 0;
+  float dataF = 0;
+  float dataG = 0;
+  float dataH = 0;
+
+  if( myIMU.readRegisterInt16( &dataHighres, KXTJ3_OUT_X_L ) == 0 ){}
+
+  #ifdef DEBUG
+  dataF = (float)accelRange * dataHighres/32768;
+  Serial.print(dataF);
+    #endif
+  int offset = accelRange * dataHighres/3000; 
+if( myIMU.readRegisterInt16( &dataHighres, KXTJ3_OUT_Y_L ) == 0 ){}
+  #ifdef DEBUG
+  Serial.print(" ");
+  dataG = (float)accelRange * dataHighres/32768;
+  Serial.print(dataG);
+  #endif
+  int color = accelRange * dataHighres/6000;
+
+ if( myIMU.readRegisterInt16( &dataHighres, KXTJ3_OUT_Z_L ) == 0 ){}
+  #ifdef DEBUG
+  Serial.print(" ");
+  dataH = (float)accelRange * dataHighres/32768;
+  Serial.println(dataH);
+  #endif 
+
+if( dataF + dataG + dataH > 3){
+  FastLED.setBrightness(BRIGHTNESS * dataH); 
+  leds[1] += CHSV( gHue, 255, 192);
+  leds[2] += CHSV( gHue, 255, 192);
+  leds[3] += CHSV( gHue, 255, 192);
+  leds[4] += CHSV( gHue, 255, 192);
+  leds[5] += CHSV( gHue, 255, 192);
+  leds[6] += CHSV( gHue, 255, 192);
+  leds[7] += CHSV( gHue, 255, 192);
+  leds[8] += CHSV( gHue, 255, 192);
+  leds[9] += CHSV( gHue, 255, 192);
+  leds[10] += CHSV( gHue, 255, 192);
+  leds[11] += CHSV( gHue, 255, 192);
+  leds[12] += CHSV( gHue, 255, 192);
+  leds[13] += CHSV( gHue, 255, 192);
+  leds[14] += CHSV( gHue, 255, 192);
+  leds[15] += CHSV( gHue, 255, 192);
+  leds[16] += CHSV( gHue, 255, 192);
+  leds[17] += CHSV( gHue, 255, 192);
+  leds[18] += CHSV( gHue, 255, 192);
+  leds[19] += CHSV( gHue, 255, 192);
+  leds[20] += CHSV( gHue, 255, 192);
+}
+if( dataF + dataG + dataH < -3){
+  FastLED.setBrightness(BRIGHTNESS * -dataH); 
+  leds[1] += CHSV( gHue, 255, 192);
+  leds[2] += CHSV( gHue, 255, 192);
+  leds[3] += CHSV( gHue, 255, 192);
+  leds[4] += CHSV( gHue, 255, 192);
+  leds[5] += CHSV( gHue, 255, 192);
+  leds[6] += CHSV( gHue, 255, 192);
+  leds[7] += CHSV( gHue, 255, 192);
+  leds[8] += CHSV( gHue, 255, 192);
+  leds[9] += CHSV( gHue, 255, 192);
+  leds[10] += CHSV( gHue, 255, 192);
+  leds[11] += CHSV( gHue, 255, 192);
+  leds[12] += CHSV( gHue, 255, 192);
+  leds[13] += CHSV( gHue, 255, 192);
+  leds[14] += CHSV( gHue, 255, 192);
+  leds[15] += CHSV( gHue, 255, 192);
+  leds[16] += CHSV( gHue, 255, 192);
+  leds[17] += CHSV( gHue, 255, 192);
+  leds[18] += CHSV( gHue, 255, 192);
+  leds[19] += CHSV( gHue, 255, 192);
+  leds[20] += CHSV( gHue, 255, 192);
+}
+  myIMU.standby( true );
+ 
+ 
+ 
+  fadeToBlackBy( leds, NUM_LEDS, 10);
+
+
+
+
+
+  FastLED.show();
+
+  FastLED.delay(1000/FRAMES_PER_SECOND); 
+
+  EVERY_N_MILLISECONDS( 10 ) { gHue=gHue+1; }
+
+  delay(10);
+
+}
